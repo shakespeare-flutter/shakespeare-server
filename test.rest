@@ -1,0 +1,20 @@
+### 1. get analyzed book
+
+GET http://localhost:5000/book?id=analyzed
+
+### 2. get analyzing book
+
+GET http://localhost:5000/book?id=analyzing
+
+### 3. post book content
+
+POST http://localhost:5000/book?id=identifier-example:0
+Content-Type: application/json
+
+{
+  "content" : "content-example:0"
+}
+
+### 4. Get music
+
+GET http://localhost:5000/music?id=1
