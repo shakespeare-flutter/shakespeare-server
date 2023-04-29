@@ -1,11 +1,11 @@
 # shakespeare-server
  
 ## 1. 패키지
-** 가상환경 사용이 권장됩니다.
-
-** https://wikidocs.net/81041
+가상환경 사용이 권장됩니다.
+https://wikidocs.net/81041
 
     pip insatll Flask
+    pip install flask-migrate
 
 ## 2. 실행방법
     
