@@ -17,7 +17,8 @@ https://wikidocs.net/81041
     GET http://localhost:5000/book?id=identifier-example-0
 ##
     ## 응답 예시
-    200 
+    HTTP/1.1 200 OK
+    Content-Type: application/json
     
     {
         data:
