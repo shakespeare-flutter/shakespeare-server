@@ -1,20 +1,25 @@
-### 1. get analyzed book
+### 1. 책 검색
+GET http://localhost:5000/book?id=identifier-example-0
 
-GET http://localhost:5000/book?id=analyzed
-
-### 2. get analyzing book
-
-GET http://localhost:5000/book?id=analyzing
-
-### 3. post book content
-
-POST http://localhost:5000/book?id=identifier-example:0
+### 2. 책 추가
+POST http://localhost:5000/book?id=identifier-example-0
 Content-Type: application/json
 
 {
-  "content" : "content-example:0"
+    "content" : "content-example-0"
 }
 
-### 4. Get music
+### 3. 음악 검색
+POST http://localhost:5000/music
+Content-Type: application/json
 
+{
+    "start" : "0",
+    "end" : "10",
+    "emotion" : ["happy", "joy"],
+    "color" : "red",
+    "weather" : "rain"
+}
+
+### 4. 음악 재생
 GET http://localhost:5000/music?id=1
