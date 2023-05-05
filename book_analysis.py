@@ -4,7 +4,7 @@ import time
 
 def analyze(book:Book):
     book.processing = True
-    db.session.commit()    
+    db.session.commit()
     for i in range(10):
         print('processing...' + book.identifier)
         time.sleep(1)

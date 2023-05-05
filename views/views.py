@@ -49,13 +49,18 @@ def post_book():
         record = Book(identifier=id, content=request.json['content'])
         db.session.add(record)
         book_analysis.analyze(record)
-        return '', 201
+        return 'NEW RECORD ADDED', 201
     else:
         if record.result is None:
             if record.content is None:
                 record.content = request.json['content']
-            book_analysis.analyze(record)
-        return '', 201
+                book_analysis.analyze(record)
+                return 'NEW CONTENT ADDED', 201
+            else:
+                book_analysis.analyze(record)
+                return 'ANALYZED', 201
+        else:
+            return 'ANALYZED ALREADY', 201
 
 @bp.route('/music', methods=['GET'])
 def get_music():    
