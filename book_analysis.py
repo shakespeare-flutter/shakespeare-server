@@ -14,24 +14,19 @@ def analyze(book:Book):
     return
 
 example = """{
-    data:[
+    data:
+    [
         {
             "start" : "0",
             "end" : "10",
-            "emotion":{
-                "happy":"4",
-                "joy":"7"
-                },
+            "emotion":{ "joy":0.2, "excitement":0.5, "gratitude":0.7 },
             "color" : "red",
             "weather" : "rain"
         },
         {
             "start" : "10",
             "end" : "20",
-            "emotion" : {
-                "happy":"1",
-                "joy":"4"
-                },
+            "emotion":{ "joy":0.2, "excitement":0.5, "gratitude":0.7 },
             "color" : "white",
             "weather" : "cloudy"
         }

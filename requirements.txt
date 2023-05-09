@@ -3,3 +3,4 @@ flask-migrate
 requests
 python-dotenv
 openai
+pandas

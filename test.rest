@@ -16,10 +16,13 @@ Content-Type: application/json
 {
     "start" : "0",
     "end" : "10",
-    "emotion" : ["happy", "joy"],
+    "emotion" : { "joy":0.2, "excitement":0.5, "gratitude":0.7 },
     "color" : "red",
     "weather" : "rain"
 }
 
 ### 4. 음악 재생
-GET http://localhost:5000/music?id=1
+#GET http://localhost:5000/music?id=10 // 브라우저 실행
+
+### 5. 음악 정보
+GET http://localhost:5000/music_info?id=10

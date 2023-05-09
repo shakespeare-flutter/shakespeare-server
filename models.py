@@ -6,7 +6,3 @@ class Book(db.Model):
     processing = db.Column(db.Boolean, default=False, nullable=False)
     content = db.Column(db.Text(), nullable=True)
     result = db.Column(db.Text(), nullable=True)
-
-class Music(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    path = db.Column(db.String(256), nullable=False)

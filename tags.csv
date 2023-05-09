@@ -1,0 +1,19 @@
+﻿GENRE,TEMPO,MOOD,INSTRUMENT
+ballad,매우빠르게,BRIGHT,관악기(BRASS&WOODWIND)
+bossa nova,빠르게,CHIC,기타(GUITAR)
+easy listening,조금빠르게,DARK,대금(DAEGEUM)
+funk,보통빠르기로,DRAMA,드럼(DRUM)
+jazz piano,조금느리게,EMOTIONAL,스트링(STRING)
+smooth jazz,느리게,ENERGETIC,스트링앙상블(STRING ENSEMBLE)
+latin,매우느리게,FRESH,양금(YANGGEUM)
+pop,루바토,MAGNIFICIENT,오케스트라(ORCHESTRA)
+ragtime,,MYSTERY,장구(JANGGU)
+samba,,POWERFUL,첼로(CELLO)
+string,,SAD,콘트라베이스(CONTRABASS)
+swing,,SENTIMENTAL,팀파니(TIMPANI)
+fast swing,,WHITE,패드(PAD)
+uptempo swing,,,피아노(PIANO)
+medium swing,,,해금(HAEGEUM)
+slow swing,,,
+waltz,,,
+국악,,,

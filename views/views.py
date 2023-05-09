@@ -1,6 +1,7 @@
-from flask import Blueprint, request, Response, redirect, jsonify
+from flask import Blueprint, request, Response, redirect, jsonify, make_response
+import json
 from app import db
-from models import Book, Music
+from models import Book
 import book_analysis
 import music_recommend
 import os.path
@@ -30,7 +31,8 @@ def get_book():
     while record.processing:
         print('waiting...' + id)
         time.sleep(1)
-    return jsonify(record.result)
+
+    return Response(json.dumps(record.result, ensure_ascii=False), content_type='application/json')
 
 @bp.route('/book', methods=['POST'])
 def post_book():
@@ -68,11 +70,15 @@ def get_music():
     # invalid get
     if id is None:
         return 'NO IDENTIFIER', 400
-    # check if record exist
-    record = Music.query.get(id)
-    if record is None:
+    
+    # check if data exist
+    try:
+        path = music_recommend.get_path(id)
+    except Exception as e:
+        return str(e), 400
+    if path is None:
         return 'INVALID ID', 404
-    path = 'music/' + record.path
+    path = 'music/' + path
     if not os.path.isfile(path):
         return 'NO FILE', 404
     def generate():
@@ -83,8 +89,23 @@ def get_music():
                 data = fwav.read(1024)
     return Response(generate(), mimetype="audio/mp3")
 
+@bp.route('/music_info', methods=['GET'])
+def get_music_info():
+    id = request.args.get('id')
+    # invalid get
+    if id is None:
+        return 'NO IDENTIFIER', 400
+    # check if data exist
+    try:
+        result = music_recommend.get_info(id)
+    except Exception as e:
+        return str(e), 400
+    if result is None:
+        return 'INVALID ID', 404
+    return Response(json.dumps(result, ensure_ascii=False), content_type='application/json')
+
 @bp.route('/music', methods=['POST'])
-def post_music():    
+def post_music():
     if not request.is_json:
         return 'NEED JSON', 400
     if not 'emotion' in request.json:
@@ -94,5 +115,9 @@ def post_music():
     color = request.json['color']
     weather = request.json['weather']
 
-    result = music_recommend.get_music(emotion, color, weather)
+    try:
+        result = music_recommend.get_music(emotion, color, weather)
+    except Exception as e:
+        return str(e), 400
+
     return redirect('/music?id=' + result)

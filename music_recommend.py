@@ -1,8 +1,69 @@
-from models import Music
-import random
-import time
+import pandas as pd
+import numpy as np
+import json
+import enum
 
-def get_music(emotion, color, weather)->str:
-    print('... music recommendation ...\nemotion: {e}\ncolor: {c}\nweather: {w}'.format(e=emotion, c=color, w=weather))
-    time.sleep(0.5)
-    return str(random.randint(1, 4))
+class HEADER(enum.IntEnum):
+    FILE = 0
+    ENG = 1
+    KOR = 2
+    GENRE = 3
+    TEMPO = 4
+    MOOD = 5
+    INSTRUMENT = 6
+
+pd.set_option('display.max_columns', None)
+pd.set_option('display.max_rows', None)
+
+MUSIC = pd.read_csv('music.csv', header=0, index_col=0)
+COUNT = len(MUSIC.index)
+RELAVANCE = pd.read_csv('relavance.csv', header=0, index_col=0)
+
+TAGS = pd.read_csv('tags.csv', header=0)
+GENRE = [str(i) for i in TAGS[HEADER.GENRE.name] if i is not np.nan]
+TEMPO = [str(i) for i in TAGS[HEADER.TEMPO.name] if i is not np.nan]
+MOOD = [str(i) for i in TAGS[HEADER.MOOD.name] if i is not np.nan]
+INST = [str(i) for i in TAGS[HEADER.INSTRUMENT.name] if i is not np.nan]
+
+WEIGHT = json.load(open('weight.json', encoding="UTF-8"))
+
+def get_music(emotion:map, color, weather)->str:
+    df = RELAVANCE[list(emotion.keys())].multiply(emotion.values()).sum(axis=1)
+    gnr = df[GENRE] * WEIGHT[HEADER.GENRE.name]
+    tmp = df[TEMPO] * WEIGHT[HEADER.TEMPO.name]
+    mud = df[MOOD] * WEIGHT[HEADER.MOOD.name]
+    inst = df[INST] * WEIGHT[HEADER.INSTRUMENT.name]
+
+    def get_value(series:pd.Series)->float:
+        return gnr[series[HEADER.GENRE.value]] + tmp[series[HEADER.TEMPO.value]] + mud[series[HEADER.MOOD.value]] + np.average([inst[tag] for tag in series[HEADER.INSTRUMENT.value].split('+')])
+    
+    result = None
+    max = 0
+    for idx, series in MUSIC.iterrows():
+        value = get_value(series)
+        if value > max:
+            max = value
+            result = idx
+
+    print(' / '.join(MUSIC.iloc[result][HEADER.KOR.value:]))
+    return str(result)
+
+def get_path(index:int):
+    index = int(index)
+    if index >= COUNT:
+        return None
+    return MUSIC.iloc[index][HEADER.FILE.value]
+
+def get_info(index:int):
+    index = int(index)
+    if index >= COUNT:
+        return None
+    srz = MUSIC.iloc[index]
+    return {
+        HEADER.ENG.name:srz[HEADER.ENG.value],
+        HEADER.KOR.name:srz[HEADER.KOR.value],
+        HEADER.GENRE.name:srz[HEADER.GENRE.value],
+        HEADER.TEMPO.name:srz[HEADER.TEMPO.value],
+        HEADER.MOOD.name:srz[HEADER.MOOD.value],
+        HEADER.INSTRUMENT.name:srz[HEADER.INSTRUMENT.value],
+        }
