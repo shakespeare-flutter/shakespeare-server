@@ -12,9 +12,6 @@ class HEADER(enum.IntEnum):
     MOOD = 5
     INSTRUMENT = 6
 
-pd.set_option('display.max_columns', None)
-pd.set_option('display.max_rows', None)
-
 MUSIC = pd.read_csv('music.csv', header=0, index_col=0)
 COUNT = len(MUSIC.index)
 RELAVANCE = pd.read_csv('relavance.csv', header=0, index_col=0)
@@ -27,7 +24,7 @@ INST = [str(i) for i in TAGS[HEADER.INSTRUMENT.name] if i is not np.nan]
 
 WEIGHT = json.load(open('weight.json', encoding="UTF-8"))
 
-def get_music(emotion:map, color, weather)->str:
+def get_music(emotion:map, color, weather, test = False)->str:
     df = RELAVANCE[list(emotion.keys())].multiply(emotion.values()).sum(axis=1)
     gnr = df[GENRE] * WEIGHT[HEADER.GENRE.name]
     tmp = df[TEMPO] * WEIGHT[HEADER.TEMPO.name]
@@ -37,6 +34,12 @@ def get_music(emotion:map, color, weather)->str:
     def get_value(series:pd.Series)->float:
         return gnr[series[HEADER.GENRE.value]] + tmp[series[HEADER.TEMPO.value]] + mud[series[HEADER.MOOD.value]] + np.average([inst[tag] for tag in series[HEADER.INSTRUMENT.value].split('+')])
     
+    if test:
+        temp = MUSIC.copy()
+        temp.insert(3, 'score', [get_value(series) for series in MUSIC.values])
+        temp = temp.sort_values('score', ascending=False)
+        return temp
+
     result = None
     max = 0
     for idx, series in MUSIC.iterrows():
