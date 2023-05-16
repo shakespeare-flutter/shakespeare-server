@@ -17,9 +17,7 @@
 ---
 ## 3. 통신예시
 ### 3-1. 책 검색
-
-    ## 요청 예시    
-    GET http://localhost:5000/book?id=identifier-example-0
+    GET http://localhost:5000/book?id=1
 ### 3-1-1. 응답 예시
     HTTP/1.1 200 OK
     Content-Type: application/json
@@ -28,20 +26,18 @@
         data:
         [
             {
-                "start" : "0",
-                "end" : "10",
-                "emotion":{ "joy":0.2, "excitement":0.5, "gratitude":0.7 },
-                "color" : "red",
-                "weather" : "rain"
+                "cfi": "/6/6!/4/2[pgepubid00003]/4",
+                "emotion": {"joy": 0.2, "excitement": 0.5, "gratitude": 0.7},
+                "color": "#0066AA",
+                "weather": "rain"
             },
             {
-                "start" : "10",
-                "end" : "20",
-                "emotion":{ "joy":0.2, "excitement":0.5, "gratitude":0.7 },
-                "color" : "white",
-                "weather" : "cloudy"
+                "cfi": "/6/6!/4/2[pgepubid00003]/6",
+                "emotion": {"joy": 0.2, "excitement": 0.5, "gratitude": 0.7},
+                "color": "#0066AA",
+                "weather": "rain"
             }
-        ]        
+        ]
     }
 ### 3-1-2. 결과
     200: 성공
@@ -49,12 +45,15 @@
     404: 정보 없음 → POST
 ---
 ### 3-2. 책 추가
-    POST http://localhost:5000/book?id=identifier-example-0
-    Content-Type: application/json
+    POST http://localhost:5000/book
+    Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
 
-    {
-        "content" : "content-example:0"
-    }
+    ------WebKitFormBoundary7MA4YWxkTrZu0gW
+    Content-Disposition: form-data; name="book"; filename="alice.epub"
+
+    < C:/Users/dlals/Downloads/alice.epub
+    ------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
 ### 3-2-1. 결과
     201: 성공 → GET
     400: 잘못된 요청
@@ -64,8 +63,7 @@
     Content-Type: application/json
 
     {
-        "start":"0",
-        "end":"10",
+        "cfi": "/6/6!/4/2[pgepubid00003]/4",
         "emotion":{ "joy":0.2, "excitement":0.5, "gratitude":0.7 },
         "color":"red",
         "weather":"rain"

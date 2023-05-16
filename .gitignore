@@ -152,5 +152,7 @@ cython_debug/
 #.idea/
 
 
-# mp3 assets
+# assets
 music/
+processing/
+result/

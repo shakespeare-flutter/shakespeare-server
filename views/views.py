@@ -6,6 +6,9 @@ import book_analysis
 import music_recommend
 import os.path
 import time
+from werkzeug.utils import secure_filename
+from werkzeug.datastructures import FileStorage
+import uuid
 
 bp = Blueprint('main', __name__, url_prefix='/')
 
@@ -18,51 +21,43 @@ def get_book():
     if id is None:
         return 'NO IDENTIFIER', 400
     # check if record exist
-    record = Book.query.filter_by(identifier=id).first()
+    record : Book = Book.query.filter_by(id=id).first()
     if record is None:
         return 'NO RECORD', 404
     
-    if record.result is None:
-        if record.content is None:
-            return 'LOST CONTENT', 404
+    # no result
+    if not record.result_exists():
         if not record.processing:
-            book_analysis.analyze(record)
+            return 'LOST CONTENT', 404
+        while record.processing:
+            print('waiting...' + id)
+            time.sleep(1)
 
-    while record.processing:
-        print('waiting...' + id)
-        time.sleep(1)
-
-    return Response(json.dumps(record.result, ensure_ascii=False), content_type='application/json')
+    with open(record.result, 'r', encoding='utf-8') as f:
+        s = f.read()
+    if s is None:
+        os.remove(record.result)
+        return 'LOST CONTENT', 404
+    return Response(json.dumps(s, ensure_ascii=False), content_type='application/json')
 
 @bp.route('/book', methods=['POST'])
 def post_book():
-    id = request.args.get('id')
-    # invalid post
-    if id is None:
-        return 'NO IDENTIFIER', 400
-    if not request.is_json:
-        return 'NEED JSON', 400
-    if not 'content' in request.json:
-        return 'NO \'content\' IN JSON', 400
+    if not 'book' in request.files:
+        return 'NO FILE', 400
+    file = request.files['book']    
+    if file is None:
+        return 'NO FILE', 400
     
-    # check if record exists
-    record = Book.query.filter_by(identifier=id).first()
-    if record is None:
-        record = Book(identifier=id, content=request.json['content'])
-        db.session.add(record)
-        book_analysis.analyze(record)
-        return 'NEW RECORD ADDED', 201
-    else:
-        if record.result is None:
-            if record.content is None:
-                record.content = request.json['content']
-                book_analysis.analyze(record)
-                return 'NEW CONTENT ADDED', 201
-            else:
-                book_analysis.analyze(record)
-                return 'ANALYZED', 201
-        else:
-            return 'ANALYZED ALREADY', 201
+    os.makedirs('processing', exist_ok=True)
+    path = os.path.join('processing', ''.join((str(uuid.uuid1()), '.epub')))
+    print(path)
+    file.save(path)
+    
+    try:
+        id = book_analysis.search_book(path)
+        return Response(json.dumps({'id':id}, ensure_ascii=False), content_type='application/json')
+    except Exception as e:
+        return str(e), 400
 
 @bp.route('/music', methods=['GET'])
 def get_music():    
