@@ -54,8 +54,16 @@
     < C:/Users/dlals/Downloads/alice.epub
     ------WebKitFormBoundary7MA4YWxkTrZu0gW--
 
+### 3-1-1. 응답 예시
+    HTTP/1.1 200 OK
+    Content-Type: application/json
+    
+    {
+        "id": "1"
+    }
+
 ### 3-2-1. 결과
-    201: 성공 → GET
+    200: 성공 → GET
     400: 잘못된 요청
 ---
 ### 3-3. 음악 검색
