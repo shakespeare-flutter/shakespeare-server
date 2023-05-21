@@ -1,5 +1,5 @@
 flask
-flask-migrate
+sqlalchemy
 requests
 python-dotenv
 openai

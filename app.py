@@ -1,12 +1,10 @@
 from flask import Flask
-from flask_migrate import Migrate
-from flask_sqlalchemy import SQLAlchemy
+from database import My_SQLAlchemy
 from dotenv import load_dotenv
 ### from gpt_api import getEmotionFromGPT # test
 
 import config
-db = SQLAlchemy()
-migrate = Migrate()
+db = My_SQLAlchemy()
 
 def create_app():
     app = Flask(__name__)
@@ -17,7 +15,6 @@ def create_app():
 
     # ORM
     db.init_app(app)
-    migrate.init_app(app, db)
     import models
 
     # blueprint

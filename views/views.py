@@ -1,14 +1,13 @@
-from flask import Blueprint, request, Response, redirect, jsonify, make_response
+from flask import Blueprint, request, Response, redirect
 import json
-from app import db
 from models import Book
 import book_analysis
+from book_analysis import processing, join
 import music_recommend
 import os.path
-import time
-from werkzeug.utils import secure_filename
-from werkzeug.datastructures import FileStorage
+import traceback
 import uuid
+from app import db
 
 bp = Blueprint('main', __name__, url_prefix='/')
 
@@ -20,18 +19,18 @@ def get_book():
     # invalid get
     if id is None:
         return 'NO IDENTIFIER', 400
+    id = int(id)
     # check if record exist
-    record : Book = Book.query.filter_by(id=id).first()
+    record:Book = Book.query.get(id)
     if record is None:
         return 'NO RECORD', 404
     
     # no result
     if not record.result_exists():
-        if not record.processing:
+        if not processing(id):
             return 'LOST CONTENT', 404
-        while record.processing:
-            print('waiting...' + id)
-            time.sleep(1)
+        join(id)
+        db.session.refresh(record)
 
     with open(record.result, 'r', encoding='utf-8') as f:
         s = f.read()
@@ -54,9 +53,10 @@ def post_book():
     file.save(path)
     
     try:
-        id = book_analysis.search_book(path)
+        id = book_analysis.handle_post(path)
         return Response(json.dumps({'id':id}, ensure_ascii=False), content_type='application/json')
     except Exception as e:
+        traceback.print_exc()
         return str(e), 400
 
 @bp.route('/music', methods=['GET'])
