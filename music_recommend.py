@@ -48,7 +48,7 @@ def get_music(emotion:map, color, weather, test = False)->str:
             max = value
             result = idx
 
-    print(' / '.join(MUSIC.iloc[result][HEADER.KOR.value:]))
+    #print(' / '.join(MUSIC.iloc[result][HEADER.KOR.value:]))
     return str(result)
 
 def get_path(index:int):

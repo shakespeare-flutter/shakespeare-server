@@ -1,4 +1,4 @@
-from flask import Blueprint, request, Response, redirect
+from flask import Blueprint, request, Response
 import json
 from models import Book
 import book_analysis

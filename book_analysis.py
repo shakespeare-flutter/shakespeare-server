@@ -11,6 +11,8 @@ from multiprocessing.pool import ThreadPool
 import time
 from threading import Thread, Lock
 import gpt_api
+from math import exp
+import numpy as np
 
 OPF = '{http://www.idpf.org/2007/opf}'
 XHTML = '{http://www.w3.org/1999/xhtml}'
@@ -70,23 +72,19 @@ def _analyze(id:int, reader:epub.EpubReader):
         emotion = {}
         for i in gpt_api.getLogProbEmotionFromGPT(node.text):
             for j in i.items():
-                emotion[j[0].strip()] = pow(10, j[1])     
+                emotion[j[0].strip()] = exp(j[1])     
         return {
             "cfi" : node.get(ATTR_CFI),
-            "content": node.text,
-            "emotion": emotion,
-            #"color" : "#000000",
-            #"weather" : "rain"
+            #"content": node.text,
+            #"emotion": emotion,
+            "color" : "#000000",
+            "weather" : "rain"
             }
     
-    book:Book = Book.query.get(id)  
-    result:str
+    book:Book = Book.query.get(id)
     path = os.path.join('raw', ''.join((str(book.id), '.json')))
 
-    if book.raw_result_exists():
-        with open(path, 'r', encoding='utf-8') as f:
-            result = f.read()
-    else:
+    if not book.raw_result_exists():
         start_time = time.time()
         title = str(reader.book.get_metadata('DC', 'title'))
         print('ASKING GPT.....', title)
@@ -107,10 +105,14 @@ def _analyze(id:int, reader:epub.EpubReader):
         with open(path, 'w+', encoding='utf-8') as f:
             f.write(result)
 
+    raw_values, _, cfi = get_raw_values(path)
+    rounded_values, _ = get_rounded_values(raw_values)
+    result = data_to_json(cfi, rounded_values, None, None)
+
     os.makedirs('result', exist_ok=True)
     path = os.path.join('result', ''.join((str(book.id), '.json')))
     with open(path, 'w+', encoding='utf-8') as f:
-        f.write(json.dumps({'data':answer}, ensure_ascii=False))    
+        f.write(json.dumps({'data':result}, ensure_ascii=False))    
     book.result = path
     db.session.commit()
 
@@ -151,3 +153,67 @@ def parse(reader:epub.EpubReader):
         _handle_node(node, cfi)
         documents.append((item.file_name, tree))
     return documents
+
+
+EMOTION = ['admiration', 'amusement', 'anger', 'annoyance', 'approval', 'caring', 'confusion', 'curiosity', 'desire', 'disappointment', 'disapproval', 'disgust', 'embarrassment', 'excitement', 'fear', 'gratitude', 'grief', 'joy', 'love', 'nervousness', 'optimism', 'pride', 'realization', 'relief', 'remorse', 'sadness', 'surprise', 'neutral']
+
+# WINDOW SHAPE FUNCTIONS
+def normal_dist(x, deviation):
+    y = np.exp(-0.5*(x/deviation)**2)
+    return y / sum(y)
+def rectangle(x):
+    return np.ones(shape=np.shape(x)) / len(x)
+def pyramid(x):
+    y = np.abs(x)
+    y = 1 - y / np.max(y)
+    return y / np.sum(y)
+
+def get_raw_values(file_name:str):
+    with open(file_name, "r", encoding='utf-8') as f:
+        jsn = json.load(f)
+    data = [i['emotion'] for i in jsn['data']]
+    cfi = [i['cfi'] for i in jsn['data']]
+    result = {}
+    for E in EMOTION:
+        result[E] = [e[E] if E in e else 0 for e in data]
+    max_values = [max(e,key=e.get) for e in data]
+    return result, max_values, cfi
+
+HALF_SIZE = 3
+def get_rounded_values(values:dict):
+    shift = np.arange(-HALF_SIZE, HALF_SIZE+1)
+    window = normal_dist(shift, 1.5)
+    length = len(values[EMOTION[0]])
+
+    result = {}
+    for E in EMOTION:
+        origin = values[E]
+        temp = np.zeros(length)
+        for x, y in zip(shift, window):
+            v1 =  np.roll(origin, x)
+            if x < 0:
+                v1[x:] = v1[x]
+            elif x > 0:
+                v1[:x] = v1[x]
+            temp += v1 * y    
+        result[E] = temp
+    max_values = [max([E for E in EMOTION],key=lambda E : result[E][i]) for i in range(length)]
+    return result, max_values
+
+CRITERIA = 0.05
+def data_to_json(cfi, emotions:dict, weather, color):
+    length = len(emotions[EMOTION[0]])
+    result = [None] * length
+    for i in range(length):
+        e = {}
+        for E in EMOTION:
+            v = emotions[E][i]
+            if v > CRITERIA:
+                e[E] = v
+        result[i] = {
+            "cfi" : cfi[i],
+            "emotion": e,
+            "color" : "#000000",
+            "weather" : "rain"
+            }
+    return result
