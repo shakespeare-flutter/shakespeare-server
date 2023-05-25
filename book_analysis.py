@@ -1,7 +1,6 @@
 from ebooklib import epub
 from ebooklib import utils
 import xml.etree.ElementTree as ET
-from lxml import etree
 from models import Book
 from app import db
 from sqlalchemy import and_
@@ -10,8 +9,8 @@ import json
 import itertools
 from multiprocessing.pool import ThreadPool
 import time
-import random
 from threading import Thread, Lock
+import gpt_api
 
 OPF = '{http://www.idpf.org/2007/opf}'
 XHTML = '{http://www.w3.org/1999/xhtml}'
@@ -66,34 +65,52 @@ def handle_post(path:str):
 def _analyze(id:int, reader:epub.EpubReader):
     
     def _askgpt(node : ET.Element):
-        #print(node.get(ATTR_CFI))
         if node.text is None:
-            return None
-        time.sleep(1)
-        #time.sleep(random.uniform(0.5, 2))
+            return None        
+        emotion = {}
+        for i in gpt_api.getLogProbEmotionFromGPT(node.text):
+            for j in i.items():
+                emotion[j[0].strip()] = pow(10, j[1])     
         return {
             "cfi" : node.get(ATTR_CFI),
-            "emotion":{"joy":0.2, "excitement":0.5, "gratitude":0.7 },
-            "color" : "#0066AA",
-            "weather" : "rain"
+            "content": node.text,
+            "emotion": emotion,
+            #"color" : "#000000",
+            #"weather" : "rain"
             }
     
-    print('asking...')
-    book:Book = Book.query.get(id)
-    documents = parse(reader)
-    pool = ThreadPool(ASK_COUNT)
-    result = pool.map(_askgpt, itertools.chain.from_iterable([doc[1].iter(TAG_P) for doc in documents]))
-    result = [i for i in result if i is not None]
+    book:Book = Book.query.get(id)  
+    result:str
+    path = os.path.join('raw', ''.join((str(book.id), '.json')))
+
+    if book.raw_result_exists():
+        with open(path, 'r', encoding='utf-8') as f:
+            result = f.read()
+    else:
+        start_time = time.time()
+        title = str(reader.book.get_metadata('DC', 'title'))
+        print('ASKING GPT.....', title)
+        documents = parse(reader)
+        pool = ThreadPool(ASK_COUNT)
+        answer = pool.map(_askgpt, itertools.chain.from_iterable([doc[1].iter(TAG_P) for doc in documents]))
+        answer = [i for i in answer if i is not None]
+        pool.close()
+        pool.join()
+        print('GPT ANSWERED...', title,
+              '\nCOUNT..........', len(answer),
+              '\nSECONDS........', (time.time() - start_time)
+              )
+
+        book.raw = path
+        result = json.dumps({'data':answer}, ensure_ascii=False)
+        os.makedirs('raw', exist_ok=True)
+        with open(path, 'w+', encoding='utf-8') as f:
+            f.write(result)
+
     os.makedirs('result', exist_ok=True)
     path = os.path.join('result', ''.join((str(book.id), '.json')))
-    with open(path, 'w+', encoding='utf-8') as res:
-        res.write(json.dumps({'data':result}, ensure_ascii=False))
-    pool.close()
-    pool.join()
-    print('done...')
-    
-    os.remove(reader.file_name)
-    book.path = None
+    with open(path, 'w+', encoding='utf-8') as f:
+        f.write(json.dumps({'data':answer}, ensure_ascii=False))    
     book.result = path
     db.session.commit()
 
@@ -133,5 +150,4 @@ def parse(reader:epub.EpubReader):
 
         _handle_node(node, cfi)
         documents.append((item.file_name, tree))
-
     return documents

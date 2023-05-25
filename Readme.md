@@ -77,11 +77,16 @@
         "weather":"rain"
     }
 
-### 3-3-1. 응답 예시
-    HTTP/1.1 302 FOUND
-    Location: /music?id=10
+### 3-1-1. 응답 예시
+    HTTP/1.1 200 OK
+    Content-Type: application/json
+    
+    {
+        "id": "1"
+    }
+
 ### 3-3-2. 결과
-    302: 음악 재생으로 redirect
+    200: 음악 ID
     400: 잘못된 요청
 
 ---

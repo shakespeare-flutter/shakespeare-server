@@ -10,10 +10,13 @@ class Book(db.Base):
     language = Column(String, nullable=False)
 
     path = Column(String, nullable=True)
+    raw = Column(String, nullable=True)
     result = Column(String, nullable=True)
 
     def result_exists(self):
         return False if self.result is None else os.path.isfile(self.result)
+    def raw_result_exists(self):
+        return False if self.raw is None else os.path.isfile(self.raw)
     def remove_book(self):
         if False if self.path is None else os.path.isfile(self.path):
             os.remove(self.path)

@@ -111,8 +111,8 @@ def post_music():
     weather = request.json['weather']
 
     try:
-        result = music_recommend.get_music(emotion, color, weather)
+        id = music_recommend.get_music(emotion, color, weather)
     except Exception as e:
-        return str(e), 400
-
-    return redirect('/music?id=' + result)
+        return 'INVALID DATA', 400
+    
+    return Response(json.dumps({'id':id}, ensure_ascii=False), content_type='application/json')

@@ -8,8 +8,8 @@ text="People were screaming in the darkness, some crying and some praying. The s
 
 def getEmotionFromGPT(text):
     response = openai.Completion.create(
-        model="ada:ft-personal-2023-05-03-15-51-52",
-        prompt=text,
+        model="ada:ft-personal-2023-05-20-19-22-18",
+        prompt=text + "\n\n###\n\n",
         temperature=0,
         max_tokens=1,
         top_p=1.0,
@@ -23,8 +23,8 @@ def getEmotionFromGPT(text):
 
 def getLogProbEmotionFromGPT(text):
     response = openai.Completion.create(
-        model="ada:ft-personal-2023-05-03-15-51-52",
-        prompt=text,
+        model="ada:ft-personal-2023-05-20-19-22-18",
+        prompt=text + "\n\n###\n\n",
         temperature=0,
         max_tokens=1,
         top_p=1.0,
@@ -40,7 +40,7 @@ def getLogProbEmotionFromGPT(text):
 def getWeatherFromGPT(text):
     response = openai.Completion.create(
         model="ada:ft-personal-2023-05-04-14-32-30",
-        prompt="The snowflake shined under sunlight\n\n###\n\n",
+        prompt= text + "\n\n###\n\n",
         temperature=0,
         max_tokens=1,
         top_p=1.0,
@@ -56,7 +56,7 @@ def getWeatherFromGPT(text):
 def getColorFromGPT(text):
     response = openai.Completion.create(
         model="text-davinci-003",
-        prompt="Please answer only the main color code that you can feel in the text. the answer should be in color code like #ddddff.\n\nSentence: "+text+"#",
+        prompt="Please answer only the main color code that you can feel in the text. the answer should be in color code like #ddddff.\n\nSentence: "+text+"\n\n###\n\n",
         temperature=0.7,
         max_tokens=20,
         top_p=1,
