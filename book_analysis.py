@@ -75,8 +75,8 @@ def _analyze(id:int, reader:epub.EpubReader):
                 emotion[j[0].strip()] = exp(j[1])     
         return {
             "cfi" : node.get(ATTR_CFI),
-            #"content": node.text,
-            #"emotion": emotion,
+            "content": node.text,
+            "emotion": emotion,
             "color" : "#000000",
             "weather" : "rain"
             }
