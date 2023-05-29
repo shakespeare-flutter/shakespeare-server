@@ -1,5 +1,5 @@
 ### 1. 책 검색
-GET http://localhost:5000/book?id=1
+GET http://localhost:5000/book?id=2
 
 ### 2. 책 추가
 POST http://localhost:5000/book
@@ -8,7 +8,7 @@ Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0g
 ------WebKitFormBoundary7MA4YWxkTrZu0gW
 Content-Disposition: form-data; name="book"; filename="alice.epub"
 
-< C:/Users/dlals/Downloads/alice.epub
+< C:/Users/dlals/Downloads/alice2.epub
 ------WebKitFormBoundary7MA4YWxkTrZu0gW--
 
 ### 3. 음악 검색

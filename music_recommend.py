@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 import json
 import enum
+import time
+#from multiprocessing.pool import ThreadPool
 
 class HEADER(enum.IntEnum):
     FILE = 0
@@ -24,7 +26,7 @@ INST = [str(i) for i in TAGS[HEADER.INSTRUMENT.name] if i is not np.nan]
 
 WEIGHT = json.load(open('weight.json', encoding="UTF-8"))
 
-def get_music(emotion:map, color, weather, test = False)->str:
+def get_music(emotion:dict, color, weather, test = False)->str:
     df = RELAVANCE[list(emotion.keys())].multiply(emotion.values()).sum(axis=1)
     gnr = df[GENRE] * WEIGHT[HEADER.GENRE.name]
     tmp = df[TEMPO] * WEIGHT[HEADER.TEMPO.name]
@@ -50,6 +52,19 @@ def get_music(emotion:map, color, weather, test = False)->str:
 
     #print(' / '.join(MUSIC.iloc[result][HEADER.KOR.value:]))
     return str(result)
+
+def get_musics(emotions:list, colors:list, weather:list):
+    start_time = time.time()
+    print('Music Recommend...')
+
+    # pool = ThreadPool(4)
+    # musics = pool.starmap(get_music, zip(emotions, colors, weather))
+    # pool.close()
+    # pool.join()
+    musics = [get_music(e, None, None) for e in emotions]
+
+    print('Done!...', (time.time() - start_time), 'sec')
+    return musics
 
 def get_path(index:int):
     index = int(index)

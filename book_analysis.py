@@ -13,6 +13,7 @@ from threading import Thread, Lock
 import gpt_api
 from math import exp
 import numpy as np
+import music_recommend
 
 OPF = '{http://www.idpf.org/2007/opf}'
 XHTML = '{http://www.w3.org/1999/xhtml}'
@@ -62,13 +63,14 @@ def handle_post(path:str):
         t.start()
     else:
         os.remove(path)
+    db.session.close()
     return str(record.id)
 
 def _analyze(id:int, reader:epub.EpubReader):
     
     def _askgpt(node : ET.Element):
         if node.text is None:
-            return None        
+            return None 
         emotion = {}
         for i in gpt_api.getLogProbEmotionFromGPT(node.text):
             for j in i.items():
@@ -107,7 +109,10 @@ def _analyze(id:int, reader:epub.EpubReader):
 
     raw_values, _, cfi = get_raw_values(path)
     rounded_values, _ = get_rounded_values(raw_values)
-    result = data_to_json(cfi, rounded_values, None, None)
+    values = clamp_values(rounded_values)
+    music = [music_recommend.get_music(v, None, None) for v in values]
+
+    result = data_to_json(cfi, values, None, None, music)
 
     os.makedirs('result', exist_ok=True)
     path = os.path.join('result', ''.join((str(book.id), '.json')))
@@ -119,6 +124,7 @@ def _analyze(id:int, reader:epub.EpubReader):
     _lock.acquire()
     del(_threads[int(book.id)])
     _lock.release()
+    db.session.close()
     return
 
 def parse(reader:epub.EpubReader):
@@ -179,13 +185,13 @@ def get_raw_values(file_name:str):
     max_values = [max(e,key=e.get) for e in data]
     return result, max_values, cfi
 
-HALF_SIZE = 3
+HALF_SIZE = 2
 def get_rounded_values(values:dict):
     shift = np.arange(-HALF_SIZE, HALF_SIZE+1)
-    window = normal_dist(shift, 1.5)
+    window = normal_dist(shift, 1)
     length = len(values[EMOTION[0]])
-
-    result = {}
+    
+    rounded = {}
     for E in EMOTION:
         origin = values[E]
         temp = np.zeros(length)
@@ -195,25 +201,33 @@ def get_rounded_values(values:dict):
                 v1[x:] = v1[x]
             elif x > 0:
                 v1[:x] = v1[x]
-            temp += v1 * y    
-        result[E] = temp
-    max_values = [max([E for E in EMOTION],key=lambda E : result[E][i]) for i in range(length)]
-    return result, max_values
+            temp += v1 * y
+        rounded[E] = temp
+    max_values = [max([E for E in EMOTION],key=lambda E : rounded[E][i]) for i in range(length)]
+    return rounded, max_values
 
 CRITERIA = 0.05
-def data_to_json(cfi, emotions:dict, weather, color):
-    length = len(emotions[EMOTION[0]])
+def clamp_values(values:dict):
+    length = len(values[EMOTION[0]])
     result = [None] * length
     for i in range(length):
         e = {}
         for E in EMOTION:
-            v = emotions[E][i]
+            v = values[E][i]
             if v > CRITERIA:
                 e[E] = v
+        result[i] = e
+    return result
+
+def data_to_json(cfi, emotions, weather, color, music):
+    length = len(emotions)
+    result = [None] * length
+    for i in range(length):
         result[i] = {
             "cfi" : cfi[i],
-            "emotion": e,
+            "emotion": emotions[i],
             "color" : "#000000",
-            "weather" : "rain"
+            "weather" : "rain",
+            "music" : str(music[i])
             }
     return result
