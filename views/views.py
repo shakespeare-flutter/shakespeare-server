@@ -57,7 +57,7 @@ def post_book():
         return Response(json.dumps({'id':id}, ensure_ascii=False), content_type='application/json')
     except Exception as e:
         traceback.print_exc()
-        return str(e), 400
+        return str(e), 505
 
 @bp.route('/music', methods=['GET'])
 def get_music():    

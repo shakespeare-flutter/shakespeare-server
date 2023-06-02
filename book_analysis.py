@@ -70,14 +70,16 @@ def _analyze(id:int, reader:epub.EpubReader):
     
     def _askgpt(node : ET.Element):
         if node.text is None:
-            return None 
+            return None
+        else:
+            node.text = node.text.replace('\n', ' ')
         emotion = {}
         for i in gpt_api.getLogProbEmotionFromGPT(node.text):
             for j in i.items():
                 emotion[j[0].strip()] = exp(j[1])     
         return {
             "cfi" : node.get(ATTR_CFI),
-            "content": node.text,
+            "length": len(node.text.replace(' ', '')),
             "emotion": emotion,
             "color" : "#000000",
             "weather" : "rain"
@@ -107,11 +109,11 @@ def _analyze(id:int, reader:epub.EpubReader):
         with open(path, 'w+', encoding='utf-8') as f:
             f.write(result)
 
-    raw_values, _, cfi = get_raw_values(path)
+    raw_values, _, cfi, length = get_raw_values(path)
     rounded_values, _ = get_rounded_values(raw_values)
-    values = clamp_values(rounded_values)
-    music = [music_recommend.get_music(v, None, None) for v in values]
-
+    values = transpose(rounded_values)
+    
+    music = music_recommend.get_musics(values, length)
     result = data_to_json(cfi, values, None, None, music)
 
     os.makedirs('result', exist_ok=True)
@@ -179,11 +181,12 @@ def get_raw_values(file_name:str):
         jsn = json.load(f)
     data = [i['emotion'] for i in jsn['data']]
     cfi = [i['cfi'] for i in jsn['data']]
+    length = [i['length'] for i in jsn['data']]
     result = {}
     for E in EMOTION:
         result[E] = [e[E] if E in e else 0 for e in data]
     max_values = [max(e,key=e.get) for e in data]
-    return result, max_values, cfi
+    return result, max_values, cfi, length
 
 HALF_SIZE = 2
 def get_rounded_values(values:dict):
@@ -206,8 +209,8 @@ def get_rounded_values(values:dict):
     max_values = [max([E for E in EMOTION],key=lambda E : rounded[E][i]) for i in range(length)]
     return rounded, max_values
 
-CRITERIA = 0.05
-def clamp_values(values:dict):
+CRITERIA = 0.1
+def transpose(values:dict):
     length = len(values[EMOTION[0]])
     result = [None] * length
     for i in range(length):

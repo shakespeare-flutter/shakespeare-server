@@ -1,6 +1,6 @@
 {
-    "GENRE":1,
-    "TEMPO":1,
+    "GENRE":0.9,
+    "TEMPO":0.7,
     "MOOD":1.5,
-    "INSTRUMENT":0.6
+    "INSTRUMENT":0.4
 }
