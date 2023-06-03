@@ -89,7 +89,8 @@ def get_musics(emotion, length):
             current_length = l
             last_index = i
     if current_length < MINIMUM_LENGTH:
-        result[last_index:] = ''
+        result[last_index:] = [''] * (len(result) - last_index)
+    #print(last_index, '~', len(result) - 1, ':', current_music, current_length)
     print('SECONDS........', (time.time() - start_time))
     return result
 

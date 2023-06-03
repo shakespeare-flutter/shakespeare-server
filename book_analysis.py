@@ -184,7 +184,7 @@ def get_raw_values(file_name:str):
     length = [i['length'] for i in jsn['data']]
     result = {}
     for E in EMOTION:
-        result[E] = [e[E] if E in e else 0 for e in data]
+        result[E] = [e[E] if E in e else 0 for e in data]    
     max_values = [max(e,key=e.get) for e in data]
     return result, max_values, cfi, length
 
@@ -206,6 +206,7 @@ def get_rounded_values(values:dict):
                 v1[:x] = v1[x]
             temp += v1 * y
         rounded[E] = temp
+    rounded['neutral'] = rounded['neutral'] * 0.3
     max_values = [max([E for E in EMOTION],key=lambda E : rounded[E][i]) for i in range(length)]
     return rounded, max_values
 
