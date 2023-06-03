@@ -18,25 +18,28 @@ def get_book():
     id = request.args.get('id')
     # invalid get
     if id is None:
+        db.session.close()
         return 'NO IDENTIFIER', 400
     id = int(id)
     # check if record exist
     record:Book = Book.query.get(id)
     if record is None:
+        db.session.close()
         return 'NO RECORD', 404
     
     # no result
     if not record.result_exists():
         if not processing(id):
+            db.session.close()
             return 'LOST CONTENT', 404
         join(id)
         db.session.refresh(record)
-
+    db.session.close()
     with open(record.result, 'r', encoding='utf-8') as f:
         s = f.read()
     if s is None:
         os.remove(record.result)
-        return 'LOST CONTENT', 404
+        return 'LOST CONTENT', 404    
     return Response(json.dumps(s, ensure_ascii=False), content_type='application/json')
 
 @bp.route('/book', methods=['POST'])
