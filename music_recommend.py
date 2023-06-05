@@ -32,18 +32,18 @@ TAGS = pd.read_csv('tags.csv', header=0)
 
 def get_normalized_dataframe(keys:list):
     df = RELAVANCE.loc[keys]
-    return df# / norm(df, axis=1, keepdims=True)
+    return df / norm(df, axis=1, keepdims=True)
 
-GENRE = get_normalized_dataframe([str(i) for i in TAGS[HEADER.GENRE.name] if i is not np.nan]) # * WEIGHT[HEADER.GENRE.name]
-TEMPO = get_normalized_dataframe([str(i) for i in TAGS[HEADER.TEMPO.name] if i is not np.nan]) #* WEIGHT[HEADER.TEMPO.name]
-MOOD = get_normalized_dataframe([str(i) for i in TAGS[HEADER.MOOD.name] if i is not np.nan]) #* WEIGHT[HEADER.MOOD.name]
-INST = get_normalized_dataframe([str(i) for i in TAGS[HEADER.INSTRUMENT.name] if i is not np.nan]) #* WEIGHT[HEADER.INSTRUMENT.name]
+GENRE = get_normalized_dataframe([str(i) for i in TAGS[HEADER.GENRE.name] if i is not np.nan]) * WEIGHT[HEADER.GENRE.name]
+TEMPO = get_normalized_dataframe([str(i) for i in TAGS[HEADER.TEMPO.name] if i is not np.nan]) * WEIGHT[HEADER.TEMPO.name]
+MOOD = get_normalized_dataframe([str(i) for i in TAGS[HEADER.MOOD.name] if i is not np.nan]) * WEIGHT[HEADER.MOOD.name]
+INST = get_normalized_dataframe([str(i) for i in TAGS[HEADER.INSTRUMENT.name] if i is not np.nan]) * WEIGHT[HEADER.INSTRUMENT.name]
 
 def get_music(emotion:dict, color, weather, test = False)->str:
     #df = RELAVANCE[list(emotion.keys())].multiply().sum(axis=1)
     keys = list(emotion.keys())
     values = list(emotion.values())
-    #values = values / norm(values)
+    values = values / norm(values)
 
     gnr = (GENRE[keys] * values).sum(axis=1)
     tmp = (TEMPO[keys] * values).sum(axis=1)
@@ -71,7 +71,7 @@ def get_music(emotion:dict, color, weather, test = False)->str:
     return str(result) if not result is None else ''
 
 def get_musics(emotion, length):
-    print('Music Recommending...')
+    print('Recommendation.')
     start_time = time.time()
     result = [get_music(e, None, None) for e in emotion]
     result = [l if l == r else m for m, l, r in zip(result, np.roll(result, -1), np.roll(result, 1))]
@@ -100,10 +100,23 @@ def get_path(index:int):
         return None
     return MUSIC.iloc[index][HEADER.FILE.value]
 
+_empty = {
+        HEADER.ENG.name:'',
+        HEADER.KOR.name:'',
+        HEADER.GENRE.name:'',
+        HEADER.TEMPO.name:'',
+        HEADER.MOOD.name:'',
+        HEADER.INSTRUMENT.name:'',
+        }
+
 def get_info(index:int):
-    index = int(index)
-    if index >= COUNT:
-        return None
+
+    try:
+        index = int(index)
+    except:
+        return _empty
+    if index >= COUNT or index < 0:
+        return _empty        
     srz = MUSIC.iloc[index]
     return {
         HEADER.ENG.name:srz[HEADER.ENG.value],

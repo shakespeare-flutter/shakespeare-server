@@ -76,9 +76,12 @@ def _analyze(id:int, reader:epub.EpubReader):
         emotion = {}
         for i in gpt_api.getLogProbEmotionFromGPT(node.text):
             for j in i.items():
-                emotion[j[0].strip()] = exp(j[1])     
+                emotion[j[0].strip()] = exp(j[1])
+        if 'neutral' in emotion:
+            emotion['neutral'] = emotion['neutral'] * 0.3
         return {
             "cfi" : node.get(ATTR_CFI),
+            "content": node.text,
             "length": len(node.text.replace(' ', '')),
             "emotion": emotion,
             "color" : "#000000",
@@ -206,7 +209,7 @@ def get_rounded_values(values:dict):
                 v1[:x] = v1[x]
             temp += v1 * y
         rounded[E] = temp
-    rounded['neutral'] = rounded['neutral'] * 0.3
+    
     max_values = [max([E for E in EMOTION],key=lambda E : rounded[E][i]) for i in range(length)]
     return rounded, max_values
 

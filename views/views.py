@@ -90,9 +90,6 @@ def get_music():
 @bp.route('/music_info', methods=['GET'])
 def get_music_info():
     id = request.args.get('id')
-    # invalid get
-    if id is None:
-        return 'NO IDENTIFIER', 400
     # check if data exist
     try:
         result = music_recommend.get_info(id)

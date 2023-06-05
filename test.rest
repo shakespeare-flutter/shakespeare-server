@@ -1,14 +1,14 @@
 ### 1. 책 검색
-GET http://localhost:5000/book?id=7
+GET http://localhost:5000/book?id=1
 
 ### 2. 책 추가
 POST http://localhost:5000/book
 Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
 
 ------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="book"; filename="RomeoAndJuliet.epub"
+Content-Disposition: form-data; name="book"; filename="tom sawyer.epub"
 
-< C:/Users/dlals/Downloads/RomeoAndJuliet.epub
+< C:/Users/dlals/Downloads/tom sawyer.epub
 ------WebKitFormBoundary7MA4YWxkTrZu0gW--
 
 ### 3. 음악 검색
@@ -26,4 +26,4 @@ Content-Type: application/json
 #GET http://localhost:5000/music?id=10 // 브라우저 실행
 
 ### 5. 음악 정보
-GET http://localhost:5000/music_info?id=28
+GET http://localhost:5000/music_info?id=2
